@@ -27,6 +27,7 @@ group :development, :test do
   gem 'pry-rails'
   gem 'pry-doc'
   gem 'hirb'
+  gem 'sqlite3'
 end
 
 group :test do
