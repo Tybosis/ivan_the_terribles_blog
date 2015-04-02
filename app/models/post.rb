@@ -5,7 +5,7 @@ class Post < ActiveRecord::Base
   after_destroy :expire_post_all_cache
 
   def self.all_cached
-    Rails.cache.fetch('Post.all') { includes(comments: :replies).last(50) }
+    Rails.cache.fetch('Post.all') { includes(comments: :replies) }
   end
 
   def expire_post_all_cache
