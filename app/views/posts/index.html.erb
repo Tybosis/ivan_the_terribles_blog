@@ -4,8 +4,13 @@
   <section class="post">
     <% @posts.each do |post| %>
       <h2>Post <%= "#{post.id}: #{post.title}" %></h2>
-      <div class="post"><%= post.body %></div>
-      <%= render 'post_nav', post: post %>
+      <div class="post"><%= post.body %>
+        <div class="post_nav">
+          <%= link_to 'Show', post %> |
+          <%= link_to 'Edit', edit_post_path(post) %> |
+          <%= link_to 'Destroy', post, method: :delete, data: { confirm: 'Are you sure?' } %>
+        </div>
+      </div>
       <% post.comments.each do |comment| %>
         <div class="comment">
           <h3>Comment <%= comment.id %>:</h3>
