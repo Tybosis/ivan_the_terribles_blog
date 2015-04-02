@@ -1,9 +1,37 @@
-# My New Blog!
+# Ivan's terrible blog - performance upgrade
 
-I've got a lot to say, and now I have a place to say it!!!!!
+By Tyler Pottle.
 
-Read all my amazing posts!!!!! You can load them into the app with: `rake load:blog`
+## Description
 
-Since I know you want to read them all, I designed my page to show EVERYTHING on the front page of the site!!!!!
+The goal of this project was to optimize the performance of a blog app
+trying to load 100 posts, each with 100 comments and 1 reply per comment,
+for 20,100 assets in total.
 
-I know it is a little slow (but totes worth it!!!!)... _Do you know how I can make it faster?_
+## Approach
+
+My aprroach to this project was to speed up the sql queries and create a
+cache of the entire page so that it would load faster the second time
+a person visits the index page.  I accomplished this by adding an index
+on the posts table for the comment_id foreign key, and an index on the
+comments table for the reply_id foreign key.  This significantly
+increased the time spent accessing the associated data in the database.
+Next, I used eager loading to request all posts, then all comments, and
+all replies.  Thus, thousands of sql queries were reduced down to three;
+one for all posts, one for all comments, and one for all replies.
+Finally, I used dalli and memcachier on heroku to create a cache in
+memory of the massive sql query, so that if the user visits the page and
+doesn't modify anything, the previous cached version will load from
+memory instead of loading everything from the database.
+  Overall, my changes led to a significant increase in load time, from
+over a minute initially to 13-14 seconds(for one user), and then 3-4 seconds on subsequent visits(as long as nothing changed).
+My process for optimizing load times is mostly dependent on nothing
+changing about the page.  If the site were set up so visitors could
+only read posts, comments, etc.  This would be ideal.  But if a lot
+of things were changing then the cache would need to be reset
+constantly and would help out much. Overall, I think it works OK.
+
+## Performance Tests
+[Screenshot of tests](https://www.dropbox.com/s/txw9m6q6j5tk161/Screenshot%202015-04-02%2013.16.00.png?dl=0)
+
+[Test results](https://app.loadimpact.com/tests/3023872/runs/1)
