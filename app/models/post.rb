@@ -8,7 +8,7 @@ class Post < ActiveRecord::Base
     Rails.cache.fetch('Post.includes(comments: [:replies]).find((1..20).to_a)') { all }
   end
 
-  def expire_all_post_cache
+  def expire_post_all_cache
     Rails.cache.delete('Post.includes(comments: [:replies]).find((1..20).to_a)') { all }
   end
 end
