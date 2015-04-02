@@ -1,8 +1,10 @@
 class PostsController < ApplicationController
   # GET /posts
   # GET /posts.json
+  # Post.includes(comments: [:replies]).find((1..20).to_a)
   def index
-    @posts = Post.includes(comments: [:replies]).find((1..20).to_a)
+    @posts = Post.all_cached
+    @stats = Rails.cache.stats.first.last
     respond_to do |format|
       format.html # index.html.erb
       format.json { render json: @posts }
