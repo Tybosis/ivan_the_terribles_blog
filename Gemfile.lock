@@ -154,6 +154,7 @@ DEPENDENCIES
   faker
   hirb
   jquery-rails
+  kaminari
   pg
   pry-doc
   pry-rails

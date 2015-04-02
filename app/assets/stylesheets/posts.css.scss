@@ -4,3 +4,15 @@
 .post {
   margin-left: 20px;
 }
+
+.unpublished {
+  background-color: rgba(200,200,200,.80);
+}
+
+[data-unpublished] {
+  background-color: yellow;
+}
+
+[data-published] {
+  background-color: lightgreen;
+}
