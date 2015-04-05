@@ -1,29 +1,60 @@
-# My New Blog!
+# Security Fixes
 
-I've got a lot to say, and now I have a place to say it!!!!!
+My first step to fixing the security problems was to install brakeman
+and run a security analysis of the program.  Only two errors came back,
+one for a dynamic render path, and one for having a secret key in
+a file that was checked in to version control.  The dynamic render
+problem is one where a user can gain access to templates that they should
+not have access to.  So to fix this problem, rather than render a post
+partial, I switched the post index page to load all the posts with an
+each loop.
 
-Read all my amazing posts!!!!! You can load them into the app with: `rake load:blog`
-
-Since I know you want to read them all, I designed my page to show EVERYTHING on the front page of the site!!!!!
-
-I know it is a little slow (but totes worth it!!!!)... _Do you know how I can make it faster?_
-
-# I'm feeling insecure...
-
-Well, I got some requirements from marketing to make sure we distinguish between published and unpublished posts. I made some changes to the html and css.
-
-But now QA is telling me I have some security vulnerabilities! They were able to use the strings below to hack my site!!!
-
-What do I do to fix it???
-
-
-XSS:
+app/views/posts/index.html.erb
+```ruby
+<% @posts.each do |post| %>
+  <%= content_tag :section, class: "post #{post.publish_status}" do %>
+    <h2>Post <%= "#{post.id}: #{post.title}" %></h2>
+    <div class="post"><%= post.body %></div>
+    <%= render 'post_nav', post: post %>
+    <%#= render post.comments %>
+  <% end %>
+<% end %>
 ```
-http://localhost:3000/posts?utf8=%E2%9C%93&search=archive&status=foo=%22bar%22%3E%3Cscript%3Ealert%28%22p0wned!!!%22%29%3C/script%3E%3Cp%20data-foo
+
+Next, to fix the secret key problem, I moved the key into a separate file
+which I added to the .gitignore file, and then loaded that secret key
+into the environment by reading it from the new file.
+
+app/config/initializers/secret_token.rb
+```ruby
+begin
+  IvanTheTerriblesBlog::Application.configure do
+    config.secret_token = File.read(Rails.root.join('secret_token.rb'))
+  end
+rescue LoadError, Errno::ENOENT => e
+  raise "Secret token couldn't be loaded! Error: #{e}"
+end
+```
+Finally, I changed the search method in the post model to not use what
+the user typed in directly in the SQL command, to try and avoid SQL
+injection attacks.  I accomplished this by adding a question mark to
+the search string, and then extracting what the user actually typed
+in to the search box.  This syntax allows rails to do its own SQL
+scrubbing.
+
+```ruby
+def self.search(search)
+  if search
+    search.strip
+    includes(comments: :replies).where("title like ?", "%#{search}%")
+  else
+    includes(comments: :replies).order("updated_at DESC")
+  end
+end
 ```
 
-SQL Injection:
-
-```
-foo%'); INSERT INTO posts (id,title,body,created_at,updated_at) VALUES (99,'hacked','hacked alright','2013-07-18','2013-07-18'); SELECT "posts".* FROM "posts" WHERE (title like 'hacked%
-```
+I also checked to make sure the program had the right whitelisted
+parameters, I checked which attribues were accessible in the model
+(attr_accessible), I made sure that protect_from_forgery was included
+in the application_controller, and I made sure that the password
+parameters were being properly filtered.
