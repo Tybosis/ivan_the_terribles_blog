@@ -1,7 +1,14 @@
 <h1>Ivan the Terrible's Blog</h1>
 <%= render "search_form" %>
 <section class="blog">
-  <%= render @posts %>
+  <% @posts.each do |post| %>
+    <%= content_tag :section, class: "post #{post.publish_status}" do %>
+      <h2>Post <%= "#{post.id}: #{post.title}" %></h2>
+      <div class="post"><%= post.body %></div>
+      <%= render 'post_nav', post: post %>
+      <%#= render post.comments %>
+    <% end %>
+  <% end %>
 </section>
 
 <br />
